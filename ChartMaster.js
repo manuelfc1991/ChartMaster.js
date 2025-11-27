@@ -31,6 +31,12 @@ class ChartMaster {
         };
         this.detailedView = false;
 
+        // Layout measurements
+        this.titleHeight = 0;
+        this.legendHeight = 0;
+        this.axisHeight = 0;
+        this.axisWidth = 0;
+
         // Performance
         this.cache = new Map();
         this.frameId = null;
@@ -117,7 +123,7 @@ class ChartMaster {
       
       .chartmaster-detailed-view p {
         margin: 6px 0;
-        color: #fff;
+        color: #666;
         font-size: 13px;
       }
       
@@ -135,13 +141,13 @@ class ChartMaster {
       }
       
       .chartmaster-detailed-view .data-point span:first-child {
-        color: #fff;
+        color: #666;
         font-size: 12px;
       }
       
       .chartmaster-detailed-view .data-point span:last-child {
         font-weight: 600;
-        color: #fff;
+        color: #333;
       }
       
       .chartmaster-detailed-view .color-indicator {
@@ -182,7 +188,7 @@ class ChartMaster {
         const defaults = {
             responsive: true,
             maintainAspectRatio: true,
-            backgroundColor: '#ffffff', // Add this line
+            backgroundColor: '#ffffff',
             detailedView: {
                 enabled: true,
                 trigger: 'doubleClick',
@@ -196,15 +202,19 @@ class ChartMaster {
             plugins: {
                 legend: {
                     display: true,
-                    position: 'top',
+                    position: 'top', // 'top', 'bottom', 'left', 'right'
+                    align: 'center', // 'start', 'center', 'end'
                     labels: {
                         color: '#666',
                         font: {
                             size: 12,
                             family: 'Arial'
                         },
-                        padding: 10
-                    }
+                        padding: 12,
+                        boxWidth: 12,
+                        usePointStyle: false
+                    },
+                    padding: 15
                 },
                 title: {
                     display: false,
@@ -215,7 +225,11 @@ class ChartMaster {
                         weight: 'bold',
                         family: 'Arial'
                     },
-                    padding: 20
+                    padding: {
+                        top: 10,
+                        bottom: 15
+                    },
+                    align: 'center'
                 },
                 tooltip: {
                     enabled: true,
@@ -225,17 +239,42 @@ class ChartMaster {
             scales: {
                 x: {
                     display: true,
+                    title: {
+                        display: false,
+                        text: '',
+                        color: '#666',
+                        font: {
+                            size: 12,
+                            family: 'Arial'
+                        }
+                    },
                     grid: {
                         display: true,
                         color: 'rgba(0, 0, 0, 0.08)'
+                    },
+                    ticks: {
+                        padding: 8,
+                        maxRotation: 0
                     }
                 },
                 y: {
                     display: true,
                     beginAtZero: true,
+                    title: {
+                        display: false,
+                        text: '',
+                        color: '#666',
+                        font: {
+                            size: 12,
+                            family: 'Arial'
+                        }
+                    },
                     grid: {
                         display: true,
                         color: 'rgba(0, 0, 0, 0.08)'
+                    },
+                    ticks: {
+                        padding: 8
                     }
                 }
             },
@@ -245,7 +284,8 @@ class ChartMaster {
                     right: 20,
                     bottom: 20,
                     left: 20
-                }
+                },
+                autoPadding: true
             },
             elements: {
                 line: {
@@ -270,18 +310,19 @@ class ChartMaster {
             },
             // Funnel specific options
             funnel: {
-                width: 0.7, // 70% of chart area
-                gap: 0.02, // Gap between segments
-                sort: 'desc' // 'desc', 'asc', 'none'
+                width: 0.7,
+                gap: 0.02,
+                sort: 'desc'
             },
             // Gauge specific options
             gauge: {
                 startAngle: -135,
                 endAngle: 135,
-                thickness: 0.2, // 20% of radius
+                thickness: 0.2,
                 showValue: true,
                 valueFormat: (value) => value.toFixed(1),
-                ranges: [{
+                ranges: [
+                    {
                         min: 0,
                         max: 33,
                         color: '#ef4444'
@@ -536,7 +577,6 @@ class ChartMaster {
         const dataset = this.data.datasets[0];
         const total = dataset.data.reduce((sum, val) => sum + val, 0);
 
-        // Use same radius calculation as draw function
         const maxSize = Math.min(this.width, this.height);
         const radius = (maxSize / 2) - 60;
         const innerRadius = this.type === 'doughnut' ? radius * 0.5 : 0;
@@ -601,7 +641,7 @@ class ChartMaster {
         const innerRadius = radius - thickness;
 
         if (distance >= innerRadius && distance <= radius) {
-            return 0; // Gauge only has one value
+            return 0;
         }
 
         return -1;
@@ -633,18 +673,15 @@ class ChartMaster {
       ${data.percentage ? `<br>Percentage: ${data.percentage}%` : ''}
     `;
 
-        // Use fixed positioning for better reliability
         this.tooltip.style.left = event.clientX + 'px';
         this.tooltip.style.top = (event.clientY - this.tooltip.offsetHeight - 15) + 'px';
 
-        // Add visible class for fade-in effect
         requestAnimationFrame(() => {
             if (this.tooltip) {
                 this.tooltip.classList.add('visible');
             }
         });
 
-        // Boundary check
         const rect = this.tooltip.getBoundingClientRect();
         if (rect.right > window.innerWidth - 10) {
             this.tooltip.style.left = (window.innerWidth - rect.width - 10) + 'px';
@@ -749,11 +786,9 @@ class ChartMaster {
 
         document.body.appendChild(this.detailedView);
 
-        // Position using fixed positioning
         let left = e.clientX;
         let top = e.clientY + 20;
 
-        // Wait for rendering to get dimensions
         requestAnimationFrame(() => {
             const rect = this.detailedView.getBoundingClientRect();
 
@@ -800,7 +835,6 @@ class ChartMaster {
 
         const dataset = this.data.datasets[0];
 
-        // For gauge chart
         if (this.type === 'gauge') {
             const value = dataset.data[0];
             return {
@@ -811,7 +845,6 @@ class ChartMaster {
             };
         }
 
-        // For funnel chart with sorting
         if (this.type === 'funnel') {
             const sortedData = this.getSortedFunnelData();
             const item = sortedData.find(d => d.originalIndex === index);
@@ -906,9 +939,15 @@ class ChartMaster {
 
     draw(progress) {
         this.clear();
+        this.calculateLayout();
         this.calculateChartArea();
+
         if (this.options.plugins.title.display) {
             this.drawTitle();
+        }
+
+        if (this.options.plugins.legend.display && this.type !== 'gauge') {
+            this.drawLegend();
         }
 
         switch (this.type) {
@@ -932,14 +971,133 @@ class ChartMaster {
                 break;
         }
 
-        if (this.options.plugins.legend.display && this.type !== 'gauge') {
-            this.drawLegend();
-        }
-
         if (this.type === 'line' || this.type === 'bar') {
             this.drawAxes();
             this.drawGrid();
         }
+    }
+
+    calculateLayout() {
+        // Calculate title height
+        this.titleHeight = 0;
+        if (this.options.plugins.title.display) {
+            const title = this.options.plugins.title;
+            this.ctx.save();
+            this.ctx.font = `${title.font.weight || 'bold'} ${title.font.size}px ${title.font.family}`;
+            const metrics = this.ctx.measureText(title.text);
+            this.titleHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent + 
+                              title.padding.top + title.padding.bottom + 10;
+            this.ctx.restore();
+        }
+
+        // Calculate legend height/width
+        this.legendHeight = 0;
+        this.legendWidth = 0;
+        if (this.options.plugins.legend.display && this.type !== 'gauge') {
+            const legend = this.options.plugins.legend;
+            const dataset = this.data.datasets[0];
+            const labels = this.type === 'funnel' ? 
+                this.getSortedFunnelData().map(d => d.label) : 
+                this.data.labels;
+
+            this.ctx.save();
+            this.ctx.font = `${legend.labels.font.size}px ${legend.labels.font.family}`;
+            
+            const itemWidths = labels.map(label => {
+                const textWidth = this.ctx.measureText(label).width;
+                return textWidth + legend.labels.boxWidth + legend.labels.padding * 2;
+            });
+
+            if (legend.position === 'top' || legend.position === 'bottom') {
+                this.legendHeight = Math.max(...itemWidths.map(() => legend.labels.boxWidth + legend.labels.padding)) + 
+                                  legend.padding * 2;
+                this.legendWidth = this.width;
+            } else {
+                this.legendWidth = Math.max(...itemWidths) + legend.padding * 2;
+                this.legendHeight = this.height;
+            }
+            
+            this.ctx.restore();
+        }
+
+        // Calculate axis dimensions
+        this.axisHeight = 0;
+        this.axisWidth = 0;
+        if ((this.type === 'line' || this.type === 'bar') && 
+            (this.options.scales.x.display || this.options.scales.y.display)) {
+            
+            this.ctx.save();
+            this.ctx.font = '11px Arial';
+            
+            if (this.options.scales.y.display) {
+                const yTicks = this.options.scales.y.ticks || {};
+                const longestLabel = this.getLongestYAxisLabel();
+                const labelWidth = this.ctx.measureText(longestLabel).width;
+                this.axisWidth = Math.max(this.axisWidth, labelWidth + (yTicks.padding || 8) + 15);
+            }
+            
+            if (this.options.scales.x.display) {
+                const xTicks = this.options.scales.x.ticks || {};
+                const xLabels = this.data.labels || [];
+                if (xLabels.length > 0) {
+                    const maxLabelHeight = this.ctx.measureText('M').actualBoundingBoxAscent + 
+                                         this.ctx.measureText('M').actualBoundingBoxDescent;
+                    this.axisHeight = maxLabelHeight + (xTicks.padding || 8) + 15;
+                }
+            }
+            
+            this.ctx.restore();
+        }
+    }
+
+    getLongestYAxisLabel() {
+        const dataset = this.data.datasets[0];
+        const data = dataset.data;
+        const max = Math.max(...data, 0);
+        const min = this.options.scales.y.beginAtZero ? 0 : Math.min(...data, 0);
+        
+        const labels = [];
+        for (let i = 0; i <= 5; i++) {
+            const value = min + (i / 5) * (max - min);
+            labels.push(value.toFixed(1));
+        }
+        
+        return labels.reduce((a, b) => a.length > b.length ? a : b);
+    }
+
+    calculateChartArea() {
+        const layout = this.options.layout.padding;
+        const legend = this.options.plugins.legend;
+        
+        let top = layout.top + this.titleHeight;
+        let bottom = layout.bottom + this.axisHeight;
+        let left = layout.left + this.axisWidth;
+        let right = layout.right;
+
+        // Adjust for legend position
+        if (legend.display && this.type !== 'gauge') {
+            switch (legend.position) {
+                case 'top':
+                    top += this.legendHeight;
+                    break;
+                case 'bottom':
+                    bottom += this.legendHeight;
+                    break;
+                case 'left':
+                    left += this.legendWidth;
+                    break;
+                case 'right':
+                    right += this.legendWidth;
+                    break;
+            }
+        }
+
+        this.chartArea = {
+            x: left,
+            y: top,
+            width: Math.max(0, this.width - left - right),
+            height: Math.max(0, this.height - top - bottom)
+        };
     }
 
     drawLineChart(progress) {
@@ -1058,21 +1216,22 @@ class ChartMaster {
     drawPieChart(progress) {
         this.drawCircularChart(progress, 0);
     }
+
     drawDoughnutChart(progress) {
-        const radius = Math.min(this.width, this.height) / 2 - 40;
+        const radius = Math.min(this.width, this.height) / 2 - 60;
         const innerRadius = radius * 0.5;
         this.drawCircularChart(progress, innerRadius);
     }
+
     drawCircularChart(progress, innerRadius) {
         const dataset = this.data.datasets[0];
         const data = dataset.data;
         const total = data.reduce((sum, val) => sum + val, 0);
         const centerX = this.width / 2;
-        const centerY = this.height / 2;
+        const centerY = this.chartArea.y + this.chartArea.height / 2;
 
-        // Use the minimum dimension to ensure perfect circle
-        const maxSize = Math.min(this.width, this.height);
-        const radius = (maxSize / 2) - 60; // 60px padding from edges
+        const maxSize = Math.min(this.chartArea.width, this.chartArea.height);
+        const radius = (maxSize / 2) - 20;
 
         let currentAngle = -Math.PI / 2;
 
@@ -1205,13 +1364,14 @@ class ChartMaster {
         }
         return ranges[ranges.length - 1].color;
     }
+
     drawGaugeChart(progress) {
         const value = this.data.datasets[0].data[0];
         const min = 0;
         const max = 100;
         const centerX = this.width / 2;
-        const centerY = this.height / 2;
-        const maxRadius = Math.min(this.width, this.height) / 2;
+        const centerY = this.chartArea.y + this.chartArea.height * 0.65;
+        const maxRadius = Math.min(this.chartArea.width, this.chartArea.height) / 2;
         const radius = maxRadius * 0.75;
         const thickness = radius * 0.25;
         const innerRadius = radius - thickness;
@@ -1271,7 +1431,6 @@ class ChartMaster {
             const displayValue = this.options.gauge.valueFormat(value * progress);
             const label = this.data.labels[0] || '';
 
-            // Percentage value - much smaller size
             const progressColor = this.getGaugeColor(value);
             this.ctx.fillStyle = progressColor;
             this.ctx.font = `bold 48px Arial`;
@@ -1279,13 +1438,12 @@ class ChartMaster {
             this.ctx.textBaseline = 'middle';
             this.ctx.fillText(displayValue, centerX, centerY - 10);
 
-            // Label text - smaller size
             this.ctx.font = '16px Arial';
             this.ctx.fillStyle = '#bbb';
             this.ctx.fillText(label, centerX, centerY + 25);
         }
 
-        // Draw min/max labels - smaller size
+        // Draw min/max labels
         this.ctx.font = '14px Arial';
         this.ctx.fillStyle = '#999';
         this.ctx.textAlign = 'center';
@@ -1307,46 +1465,91 @@ class ChartMaster {
         this.ctx.save();
         this.ctx.font = `${title.font.weight || 'bold'} ${title.font.size}px ${title.font.family}`;
         this.ctx.fillStyle = title.color;
-        this.ctx.textAlign = 'center';
+        this.ctx.textAlign = title.align || 'center';
         this.ctx.textBaseline = 'top';
-        this.ctx.fillText(title.text, this.width / 2, this.options.layout.padding.top);
+        
+        const titleX = title.align === 'start' ? this.options.layout.padding.left : 
+                      title.align === 'end' ? this.width - this.options.layout.padding.right : 
+                      this.width / 2;
+        
+        this.ctx.fillText(title.text, titleX, this.options.layout.padding.top + title.padding.top);
         this.ctx.restore();
     }
+
     drawLegend() {
         const legend = this.options.plugins.legend;
         const dataset = this.data.datasets[0];
         const labels = this.type === 'funnel' ?
             this.getSortedFunnelData().map(d => d.label) :
             this.data.labels;
-        let legendY = this.height - this.options.layout.padding.bottom - 20;
-        let legendX = this.width / 2;
-
-        if (legend.position === 'top') {
-            legendY = this.options.layout.padding.top + (this.options.plugins.title.display ? 40 : 0);
-        }
 
         this.ctx.save();
         this.ctx.font = `${legend.labels.font.size}px ${legend.labels.font.family}`;
         this.ctx.textBaseline = 'middle';
 
-        const itemWidths = labels.map(label => this.ctx.measureText(label).width + 30);
+        const itemWidths = labels.map(label => {
+            const textWidth = this.ctx.measureText(label).width;
+            return textWidth + legend.labels.boxWidth + legend.labels.padding * 2;
+        });
+
         const totalWidth = itemWidths.reduce((sum, w) => sum + w, 0);
-        let currentX = legendX - totalWidth / 2;
+        const maxItemHeight = legend.labels.boxWidth + legend.labels.padding;
+
+        let startX, startY;
+
+        switch (legend.position) {
+            case 'top':
+                startX = legend.align === 'start' ? this.options.layout.padding.left :
+                        legend.align === 'end' ? this.width - totalWidth - this.options.layout.padding.right :
+                        (this.width - totalWidth) / 2;
+                startY = this.options.layout.padding.top + this.titleHeight + legend.padding;
+                break;
+            case 'bottom':
+                startX = legend.align === 'start' ? this.options.layout.padding.left :
+                        legend.align === 'end' ? this.width - totalWidth - this.options.layout.padding.right :
+                        (this.width - totalWidth) / 2;
+                startY = this.height - this.options.layout.padding.bottom - this.legendHeight + legend.padding;
+                break;
+            case 'left':
+                startX = this.options.layout.padding.left + legend.padding;
+                startY = this.chartArea.y + (this.chartArea.height - labels.length * maxItemHeight) / 2;
+                break;
+            case 'right':
+                startX = this.width - this.options.layout.padding.right - this.legendWidth + legend.padding;
+                startY = this.chartArea.y + (this.chartArea.height - labels.length * maxItemHeight) / 2;
+                break;
+        }
+
+        let currentX = startX;
+        let currentY = startY;
 
         labels.forEach((label, i) => {
             const color = Array.isArray(dataset.backgroundColor) ?
                 dataset.backgroundColor[i % dataset.backgroundColor.length] :
                 dataset.backgroundColor || '#3b82f6';
 
+            // Draw color box
             this.ctx.fillStyle = color;
-            this.roundRect(this.ctx, currentX, legendY - 6, 12, 12, 2);
-            this.ctx.fill();
+            if (legend.labels.usePointStyle) {
+                this.ctx.beginPath();
+                this.ctx.arc(currentX + legend.labels.boxWidth / 2, currentY, legend.labels.boxWidth / 2, 0, Math.PI * 2);
+                this.ctx.fill();
+            } else {
+                this.roundRect(this.ctx, currentX, currentY - legend.labels.boxWidth / 2, 
+                             legend.labels.boxWidth, legend.labels.boxWidth, 2);
+                this.ctx.fill();
+            }
 
+            // Draw label text
             this.ctx.fillStyle = legend.labels.color;
             this.ctx.textAlign = 'left';
-            this.ctx.fillText(label, currentX + 18, legendY);
+            this.ctx.fillText(label, currentX + legend.labels.boxWidth + legend.labels.padding, currentY);
 
-            currentX += itemWidths[i];
+            if (legend.position === 'left' || legend.position === 'right') {
+                currentY += maxItemHeight;
+            } else {
+                currentX += itemWidths[i];
+            }
         });
 
         this.ctx.restore();
@@ -1372,6 +1575,7 @@ class ChartMaster {
         this.ctx.stroke();
         this.ctx.restore();
     }
+
     drawGrid() {
         const xGrid = this.options.scales.x.grid;
         const yGrid = this.options.scales.y.grid;
@@ -1439,23 +1643,11 @@ class ChartMaster {
 
         this.ctx.restore();
     }
+
     clear() {
         this.ctx.clearRect(0, 0, this.width, this.height);
-        // Fill background color
         this.ctx.fillStyle = this.backgroundColor;
         this.ctx.fillRect(0, 0, this.width, this.height);
-    }
-    calculateChartArea() {
-        const layout = this.options.layout.padding;
-        const titleHeight = this.options.plugins.title.display ? 40 : 0;
-        const legendHeight = this.options.plugins.legend.display && this.type !== 'gauge' ? 40 : 0;
-        const axisOffset = (this.type === 'line' || this.type === 'bar') ? 40 : 0;
-        this.chartArea = {
-            x: layout.left + axisOffset,
-            y: layout.top + titleHeight,
-            width: this.width - layout.left - layout.right - axisOffset,
-            height: this.height - layout.top - layout.bottom - titleHeight - legendHeight - axisOffset
-        };
     }
 
     setBackgroundColor(color) {
@@ -1476,6 +1668,7 @@ class ChartMaster {
         ctx.quadraticCurveTo(x, y, x + radius, y);
         ctx.closePath();
     }
+
     lightenColor(color, percent) {
         if (!color || color === 'transparent') return '#3b82f6';
         let r, g, b;
@@ -1504,6 +1697,7 @@ class ChartMaster {
 
         return `rgb(${r}, ${g}, ${b})`;
     }
+
     easing(t, type) {
         const easings = {
             linear: t => t,
@@ -1519,14 +1713,16 @@ class ChartMaster {
         };
         return easings[type] ? easings[type](t) : easings.easeOutQuart(t);
     }
+
     update(newData) {
         this.cache.clear();
         if (newData.data) this.data = newData.data;
         if (newData.options) this.options = this.mergeOptions(newData.options);
         if (newData.type) this.type = newData.type;
-        if (newData.backgroundColor) this.backgroundColor = newData.backgroundColor; // Add this line
+        if (newData.backgroundColor) this.backgroundColor = newData.backgroundColor;
         this.render();
     }
+
     destroy() {
         this.removeEventListeners();
         this.hideTooltip();
@@ -1539,6 +1735,7 @@ class ChartMaster {
 
         this.cache.clear();
     }
+
     removeEventListeners() {
         if (!this.boundHandlers) return;
         this.canvas.removeEventListener('mousemove', this.boundHandlers.mousemove);
@@ -1558,6 +1755,7 @@ class ChartMaster {
         this.boundHandlers = {};
     }
 }
+
 // Export
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ChartMaster;
