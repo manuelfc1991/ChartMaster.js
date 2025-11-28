@@ -1,6 +1,6 @@
 /**
  * ChartMaster.js - Enhanced Professional Charting Library
- * @version 4.0.1
+ * @version 4.0.2
  * @license MIT
  */
 

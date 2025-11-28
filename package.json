@@ -1,11 +1,14 @@
 {
-  "name": "chartmaster",
-  "version": "1.0.0",
+  "name": "@manuelfranciscorreya/chartmaster",
+  "version": "4.0.2",
   "description": "Enhanced Professional Charting Library with Multiple Chart Types",
   "main": "dist/chartmaster.js",
   "module": "dist/chartmaster.esm.js",
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE",
+    "examples"
   ],
   "scripts": {
     "build": "echo 'Build process would go here'",
@@ -27,5 +30,8 @@
     "type": "git",
     "url": "https://github.com/manuelfc1991/chartmaster"
   },
-  "homepage": "https://github.com/manuelfc1991/chartmaster#readme"
+  "homepage": "https://github.com/manuelfc1991/chartmaster#readme",
+  "publishConfig": {
+    "access": "public"
+  }
 }
