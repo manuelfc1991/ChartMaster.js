@@ -1,24 +1,31 @@
 {
   "name": "chartmaster",
-  "version": "4.0.1", 
-  "description": "Optimized Complete Charting Library with Funnel and Gauge charts",
+  "version": "1.0.0",
+  "description": "Enhanced Professional Charting Library with Multiple Chart Types",
   "main": "dist/chartmaster.js",
   "module": "dist/chartmaster.esm.js",
   "files": [
     "dist"
   ],
+  "scripts": {
+    "build": "echo 'Build process would go here'",
+    "prepublishOnly": "npm run build"
+  },
   "keywords": [
     "charts",
     "graph",
     "visualization",
     "canvas",
     "funnel",
-    "gauge"
+    "gauge",
+    "waterfall",
+    "conversion-funnel"
   ],
-  "author": "Manuel Francis Correya",
+  "author": "Manuel Francis Correya <manufcorreya@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/manuelfc1991/chartmaster"
-  }
+  },
+  "homepage": "https://github.com/manuelfc1991/chartmaster#readme"
 }
